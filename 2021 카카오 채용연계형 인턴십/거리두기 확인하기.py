@@ -9,7 +9,6 @@ def bfs(graph, x, y):
     n = len(graph)
     queue = deque()
     queue.append((x, y))
-    px, py = (x, y)  # 직전 p의 x, y값
     while queue:
         x, y = queue.popleft()
 
