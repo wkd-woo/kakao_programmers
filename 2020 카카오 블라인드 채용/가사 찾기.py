@@ -1,8 +1,12 @@
+from collections import defaultdict
+
+
 class Node(object):
     def __init__(self, key, data=None):
         self.key = key
         self.data = data
         self.children = {}
+        self.number = defaultdict(int)
 
 
 class Trie:
@@ -11,51 +15,38 @@ class Trie:
 
     def insert(self, string):
         current_node = self.head
+        path = []
 
         for char in string:
             if char not in current_node.children:
                 current_node.children[char] = Node(char)
+            path.append(current_node)
             current_node = current_node.children[char]
+
         current_node.data = string
+
+        icnt = 1
+        for i in range(len(path) - 1, -1, -1):
+            path[i].number[icnt] += 1
+            icnt = icnt + 1
 
     def search(self, string):
         current_node = self.head
+        temp = ''
+        if not string:
+            return 0
 
-        for char in string:
+        for i, char in enumerate(string):
             if char in current_node.children:
                 current_node = current_node.children[char]
-            else:
-                return False
-
-        if current_node.data:
-            return True
-        else:
-            return False
-
-    def starts_with(self, prefix):
-        current_node = self.head
-        words = []
-
-        for p in prefix:
-            if p in current_node.children:
-                current_node = current_node.children[p]
-            else:
-                return None
-
-        current_node = [current_node]
-        next_node = []
-        while True:
-            for node in current_node:
-                if node.data:
-                    words.append(node.data)
-                next_node.extend(list(node.children.values()))
-            if len(next_node) != 0:
-                current_node = next_node
-                next_node = []
-            else:
+            elif char == '?':
+                temp = string[:i]
                 break
 
-        return words
+        nums = string.count('?')
+        if current_node.number[nums] == None:
+            return 0
+        return current_node.number[nums]
 
 
 def solution(words, queries):
@@ -66,26 +57,14 @@ def solution(words, queries):
         trie.insert(word)
         btrie.insert(word[::-1])
 
-    for i, query in enumerate(queries):
-        cnt = 0
+    for query in queries:
         if query[0] == '?':
-            query_len, search_query = len(query), query.replace('?', '')[::-1]
-            temp = btrie.starts_with(search_query)
-            if temp != None:
-                for each in temp:
-                    if len(each) == query_len:
-                        cnt += 1
+            search_query = query[::-1]
+            result = btrie.search(search_query)
         else:
-            query_len, search_query = len(query), query.replace('?', '')
-            temp = trie.starts_with(search_query)
-            if temp != None:
-                for each in temp:
-                    if len(each) == query_len:
-                        cnt += 1
-        answer.append(cnt)
+            search_query = query
+            result = trie.search(search_query)
+
+        answer.append(result)
 
     return answer
-
-
-print(solution(["frodo", "front", "frost", "frozen", "frame", "kakao"],
-               ["fro??", "????o", "fr???", "fro???", "pro?"]))
